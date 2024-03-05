@@ -22,6 +22,8 @@ CompactNamespaces: false
 IndentCaseLabels: true
 IndentPPDirectives: None
 IndentWidth: 4
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtEOF: true
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
