@@ -1,6 +1,7 @@
 #include "stl.hpp"
 
 #include <array>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 
@@ -216,7 +217,7 @@ void Stl::_loadAsciiFile(const std::string& filename) {
             case ENDLOOP:
                 if (word == "endfacet") {
                     state = BEGIN;
-                    facets.push_back(currentFacet);
+                    this->facets.push_back(currentFacet);
                     currentFacet = {};
                 } else {
                     throw StlError(StlError::FORMAT, filename);
@@ -228,8 +229,68 @@ void Stl::_loadAsciiFile(const std::string& filename) {
 }
 
 void Stl::_loadBinaryFile(const std::string& filename) {
+    // Binary file format (whitespace added for clarity):
     //
-    // file.seekg(binaryHeaderSize);
+    // [80:header]
+    // [4:number of facets]
+    //
+    // [for each facet:]
+    //     [4:norm1] [4:norm2] [4:norm3]
+    //     [4:vert1_coord1] [4:vert1_coord2] [4:vert1_coord3]
+    //     [4:vert2_coord1] [4:vert2_coord2] [4:vert2_coord3]
+    //     [4:vert3_coord1] [4:vert3_coord2] [4:vert3_coord3]
+    //     [2:0]
+    using ByteType = char;
+    constexpr std::size_t numberSize = 4;
+
+    std::ifstream file(filename);
+    file.seekg(binaryHeaderSize);
+
+    std::uint32_t numFacets;
+    file.read(reinterpret_cast<ByteType*>(&numFacets), numberSize);
+
+    if (numFacets < 0) throw StlError(StlError::FORMAT, filename);
+    this->facets.resize(numFacets);
+
+    for (std::uint32_t facetNum = 0; facetNum < numFacets; ++facetNum) {
+        std::cout << "facet:\n";
+
+        Facet& currentFacet = this->facets[facetNum];
+
+        std::cout << "    normals:";
+        for (std::uint8_t normalInd = 0; normalInd < 3; ++normalInd) {
+            if (!file) throw StlError(StlError::FORMAT, filename);
+            float normal;
+            file.read(reinterpret_cast<ByteType*>(&normal), numberSize);
+            currentFacet.normals.at(normalInd) = normal;
+            std::cout << " " << normal;
+        }
+
+        std::cout << "\n"
+                  << "    vertices:\n";
+        for (std::uint8_t vertexInd = 0; vertexInd < 3; ++vertexInd) {
+            std::cout << "        -";
+            for (std::uint8_t coordinateInd = 0; coordinateInd < 3; ++coordinateInd) {
+                if (!file) throw StlError(StlError::FORMAT, filename);
+                float coordinate;
+                file.read(reinterpret_cast<ByteType*>(&coordinate), numberSize);
+                currentFacet.vertices.at(vertexInd).coordinates.at(coordinateInd) = coordinate;
+                std::cout << " " << coordinate;
+            }
+            std::cout << "\n";
+        }
+
+        if (!file) throw StlError(StlError::FORMAT, filename);
+        std::uint16_t numAttributeBytes;
+        file.read(reinterpret_cast<ByteType*>(&numAttributeBytes), sizeof(numAttributeBytes));
+    }
+
+    // Check whether there's any leftover data at the end.
+    file.seekg(0, std::ios::end);
+    constexpr std::size_t numNumbersPerFacet = 12;
+    if (file.tellg() != binaryHeaderSize + numberSize + numFacets * (numNumbersPerFacet * numberSize + 2)) {
+        throw StlError(StlError::FORMAT, filename);
+    }
 }
 
 StlError::StlError(const StlError::ErrorType errorType, const std::string& filename)
