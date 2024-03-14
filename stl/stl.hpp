@@ -1,3 +1,6 @@
+#ifndef STL_HPP
+#define STL_HPP
+
 #include <array>
 #include <cstdint>
 #include <stdexcept>
@@ -15,7 +18,7 @@ public:
         std::array<Vertex, 3> vertices;
     };
 
-    Stl(const std::string& filename);
+    explicit Stl(const std::string& filename);
 
     std::vector<Facet> facets;
 
@@ -27,9 +30,10 @@ private:
     static constexpr std::size_t binaryHeaderSize = 80;
 };
 
-struct StlError : public std::runtime_error {
+struct StlError : std::runtime_error {
     enum ErrorType : std::uint8_t { READ, WRITE, FORMAT };
 
     StlError(ErrorType errorType, const std::string& filename);
 };
 
+#endif

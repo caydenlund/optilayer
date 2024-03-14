@@ -2,23 +2,22 @@
 
 #include <iostream>
 
-int main(int argc, char** argv) {
+int main(const int argc, const char** argv) {
     for (int ind = 1; ind < argc; ++ind) {
         std::cout << "Processing file `" << argv[ind] << ":`\n";
 
-        Stl stl(std::string {argv[ind]});
+        const Stl stl(std::string {argv[ind]});
 
-        for (const auto& facet : stl.facets) {
+        for (const auto& [normals, vertices] : stl.facets) {
             std::cout << "    Facet:\n"
-                      << "        - Normals:  " << facet.normals[0] << "  " << facet.normals[1] << "  "
-                      << facet.normals[2] << "\n"
+                      << "        - Normals:  " << normals[0] << "  " << normals[1] << "  " << normals[2] << "\n"
                       << "        - Vertices:\n"
-                      << "            - " << facet.vertices[0].coordinates[0] << "  "
-                      << facet.vertices[0].coordinates[1] << "  " << facet.vertices[0].coordinates[2] << "\n"
-                      << "            - " << facet.vertices[1].coordinates[0] << "  "
-                      << facet.vertices[1].coordinates[1] << "  " << facet.vertices[1].coordinates[2] << "\n"
-                      << "            - " << facet.vertices[2].coordinates[0] << "  "
-                      << facet.vertices[2].coordinates[1] << "  " << facet.vertices[2].coordinates[2] << "\n";
+                      << "            - " << vertices[0].coordinates[0] << "  " << vertices[0].coordinates[1] << "  "
+                      << vertices[0].coordinates[2] << "\n"
+                      << "            - " << vertices[1].coordinates[0] << "  " << vertices[1].coordinates[1] << "  "
+                      << vertices[1].coordinates[2] << "\n"
+                      << "            - " << vertices[2].coordinates[0] << "  " << vertices[2].coordinates[1] << "  "
+                      << vertices[2].coordinates[2] << "\n";
         }
     }
 }
