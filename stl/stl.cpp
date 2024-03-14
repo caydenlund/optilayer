@@ -49,7 +49,8 @@ void Stl::_loadAsciiFile(const std::string& filename) {
     //
     // A number is of the following format:
     //     [sign][mantissa]e[sign][exponent]
-    enum StateType {
+
+    enum StateType : std::uint8_t {
         BEGIN,
         FACET,
         FACET_NORMAL_0,
@@ -104,19 +105,19 @@ void Stl::_loadAsciiFile(const std::string& filename) {
                 try {
                     currentFacet.normals[0] = std::stof(word);
                     state = FACET_NORMAL_1;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case FACET_NORMAL_1:
                 try {
                     currentFacet.normals[1] = std::stof(word);
                     state = FACET_NORMAL_2;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case FACET_NORMAL_2:
                 try {
                     currentFacet.normals[2] = std::stof(word);
                     state = FACET_NORMAL_3;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case FACET_NORMAL_3:
                 if (word == "outer") {
@@ -143,19 +144,19 @@ void Stl::_loadAsciiFile(const std::string& filename) {
                 try {
                     currentFacet.vertices[0].coordinates[0] = std::stof(word);
                     state = OUTER_LOOP_VERTEX_0_1;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case OUTER_LOOP_VERTEX_0_1:
                 try {
                     currentFacet.vertices[0].coordinates[1] = std::stof(word);
                     state = OUTER_LOOP_VERTEX_0_2;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case OUTER_LOOP_VERTEX_0_2:
                 try {
                     currentFacet.vertices[0].coordinates[2] = std::stof(word);
                     state = OUTER_LOOP_VERTEX_0_3;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case OUTER_LOOP_VERTEX_0_3:
                 if (word == "vertex") {
@@ -168,19 +169,19 @@ void Stl::_loadAsciiFile(const std::string& filename) {
                 try {
                     currentFacet.vertices[1].coordinates[0] = std::stof(word);
                     state = OUTER_LOOP_VERTEX_1_1;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case OUTER_LOOP_VERTEX_1_1:
                 try {
                     currentFacet.vertices[1].coordinates[1] = std::stof(word);
                     state = OUTER_LOOP_VERTEX_1_2;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case OUTER_LOOP_VERTEX_1_2:
                 try {
                     currentFacet.vertices[1].coordinates[2] = std::stof(word);
                     state = OUTER_LOOP_VERTEX_1_3;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case OUTER_LOOP_VERTEX_1_3:
                 if (word == "vertex") {
@@ -193,19 +194,19 @@ void Stl::_loadAsciiFile(const std::string& filename) {
                 try {
                     currentFacet.vertices[2].coordinates[0] = std::stof(word);
                     state = OUTER_LOOP_VERTEX_2_1;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case OUTER_LOOP_VERTEX_2_1:
                 try {
                     currentFacet.vertices[2].coordinates[1] = std::stof(word);
                     state = OUTER_LOOP_VERTEX_2_2;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case OUTER_LOOP_VERTEX_2_2:
                 try {
                     currentFacet.vertices[2].coordinates[2] = std::stof(word);
                     state = OUTER_LOOP_VERTEX_2_3;
-                } catch (const std::invalid_argument& arg) { throw StlError(StlError::FORMAT, filename); }
+                } catch (const std::invalid_argument&) { throw StlError(StlError::FORMAT, filename); }
                 break;
             case OUTER_LOOP_VERTEX_2_3:
                 if (word == "endloop") {
@@ -246,7 +247,7 @@ void Stl::_loadBinaryFile(const std::string& filename) {
     std::ifstream file(filename);
     file.seekg(binaryHeaderSize);
 
-    std::uint32_t numFacets;
+    std::int32_t numFacets;
     file.read(reinterpret_cast<ByteType*>(&numFacets), numberSize);
 
     if (numFacets < 0) throw StlError(StlError::FORMAT, filename);
@@ -255,14 +256,14 @@ void Stl::_loadBinaryFile(const std::string& filename) {
     for (std::uint32_t facetNum = 0; facetNum < numFacets; ++facetNum) {
         std::cout << "facet:\n";
 
-        Facet& currentFacet = this->facets[facetNum];
+        auto& [normals, vertices] = this->facets[facetNum];
 
         std::cout << "    normals:";
         for (std::uint8_t normalInd = 0; normalInd < 3; ++normalInd) {
             if (!file) throw StlError(StlError::FORMAT, filename);
             float normal;
             file.read(reinterpret_cast<ByteType*>(&normal), numberSize);
-            currentFacet.normals.at(normalInd) = normal;
+            normals.at(normalInd) = normal;
             std::cout << " " << normal;
         }
 
@@ -274,7 +275,7 @@ void Stl::_loadBinaryFile(const std::string& filename) {
                 if (!file) throw StlError(StlError::FORMAT, filename);
                 float coordinate;
                 file.read(reinterpret_cast<ByteType*>(&coordinate), numberSize);
-                currentFacet.vertices.at(vertexInd).coordinates.at(coordinateInd) = coordinate;
+                vertices.at(vertexInd).coordinates.at(coordinateInd) = coordinate;
                 std::cout << " " << coordinate;
             }
             std::cout << "\n";
@@ -293,7 +294,7 @@ void Stl::_loadBinaryFile(const std::string& filename) {
     }
 }
 
-StlError::StlError(const StlError::ErrorType errorType, const std::string& filename)
+StlError::StlError(const ErrorType errorType, const std::string& filename)
     : std::runtime_error([&]() -> std::string {
           switch (errorType) {
               case READ:
@@ -306,4 +307,3 @@ StlError::StlError(const StlError::ErrorType errorType, const std::string& filen
                   return "";
           }
       }()) {}
-
