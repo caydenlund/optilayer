@@ -1,6 +1,7 @@
 #include "stl.hpp"
 
 #include <array>
+#include <cstddef>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -29,6 +30,51 @@ Stl::Stl(const std::string& filename) {
 
     // Otherwise, this is an ASCII STL file.
     _loadAsciiFile(filename);
+}
+
+Stl::Stl(const std::vector<Face>& faces)
+    : facets([&] {
+          std::vector<Facet> facets;
+          facets.reserve(faces.size());
+
+          for (const auto& face : faces) facets.emplace_back({0, 0, 0}, face);
+
+          return facets;
+      }()) {}
+
+void Stl::saveFile(const std::string& filename) const {
+    constexpr std::size_t numSize = sizeof(std::uint32_t);
+    constexpr std::size_t vertexSize = 3 * numSize;
+
+    std::ofstream file(filename, std::ios::binary);
+
+    std::array<std::ofstream::char_type, binaryHeaderSize> buffer {};
+    file.write(buffer.data(), binaryHeaderSize);
+
+    std::uint32_t numFacets = facets.size();
+    std::memcpy(buffer.data(), &numFacets, numSize);
+    file.write(buffer.data(), numSize);
+
+    for (const auto& [normals, vertices] : facets) {
+        // Normal (12 bytes):
+        for (unsigned int normalInd = 0; normalInd < 3; ++normalInd) {
+            std::memcpy(buffer.data() + normalInd * numSize, &normals.at(normalInd), numSize);
+        }
+
+        // Vertices (36 bytes):
+        for (unsigned int vertexInd = 0; vertexInd < 3; ++vertexInd) {
+            for (unsigned int axisInd = 0; axisInd < 3; ++axisInd) {
+                std::memcpy(buffer.data() + vertexInd * vertexSize + axisInd * numSize,
+                            &vertices.at(vertexInd).coordinates.at(axisInd), numSize);
+            }
+        }
+
+        // Unused (2 bytes):
+        constexpr std::uint32_t zero = 0;
+        std::memcpy(buffer.data() + 3 * numSize + 3 * vertexSize, &zero, numSize / 2);
+
+        file.write(buffer.data(), 3 * numSize + 3 * vertexSize + numSize / 2);
+    }
 }
 
 void Stl::_loadAsciiFile(const std::string& filename) {

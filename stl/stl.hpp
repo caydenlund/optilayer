@@ -18,15 +18,23 @@ public:
         std::array<Vertex, 3> vertices;
     };
 
+    using Face = std::array<float, 3>;
+
     explicit Stl(const std::string& filename);
+
+    explicit Stl(const std::vector<Face>& faces);
+
+    void saveFile(const std::string& filename) const;
 
     std::vector<Facet> facets;
 
 private:
     void _loadAsciiFile(const std::string& filename);
+
     void _loadBinaryFile(const std::string& filename);
 
     static constexpr std::size_t asciiHeaderSize = 6;
+
     static constexpr std::size_t binaryHeaderSize = 80;
 };
 
