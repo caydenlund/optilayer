@@ -37,7 +37,9 @@ Stl::Stl(const std::vector<Face>& faces)
           std::vector<Facet> facets;
           facets.reserve(faces.size());
 
-          for (const auto& face : faces) facets.emplace_back({0, 0, 0}, face);
+          for (const auto& face : faces) {
+              facets.push_back(Facet {{0, 0, 0}, std::array<Vertex, 3> {{face[0], face[1], face[2]}}});
+          }
 
           return facets;
       }()) {}

@@ -19,5 +19,7 @@ int main(const int argc, const char** argv) {
                       << "            - " << vertices[2].coordinates[0] << "  " << vertices[2].coordinates[1] << "  "
                       << vertices[2].coordinates[2] << "\n";
         }
+
+        stl.saveFile("test.stl");
     }
 }
