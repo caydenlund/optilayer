@@ -13,20 +13,17 @@ public:
         std::array<float, 3> coordinates;
     };
 
-    struct Facet {
-        std::array<float, 3> normals;
-        std::array<Vertex, 3> vertices;
+    struct Triangle {
+        std::array<std::size_t, 3> vertices;
     };
-
-    using Face = std::array<float, 3>;
 
     explicit Stl(const std::string& filename);
 
-    explicit Stl(const std::vector<Face>& faces);
-
     void saveFile(const std::string& filename) const;
 
-    std::vector<Facet> facets;
+    std::vector<Vertex> vertices;
+
+    std::vector<Triangle> triangles;
 
 private:
     void _loadAsciiFile(const std::string& filename);

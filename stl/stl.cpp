@@ -32,18 +32,6 @@ Stl::Stl(const std::string& filename) {
     _loadAsciiFile(filename);
 }
 
-Stl::Stl(const std::vector<Face>& faces)
-    : facets([&] {
-          std::vector<Facet> facets;
-          facets.reserve(faces.size());
-
-          for (const auto& face : faces) {
-              facets.push_back(Facet {{0, 0, 0}, std::array<Vertex, 3> {{face[0], face[1], face[2]}}});
-          }
-
-          return facets;
-      }()) {}
-
 void Stl::saveFile(const std::string& filename) const {
     constexpr std::size_t numSize = sizeof(std::uint32_t);
     constexpr std::size_t vertexSize = 3 * numSize;
@@ -53,15 +41,14 @@ void Stl::saveFile(const std::string& filename) const {
     std::array<std::ofstream::char_type, binaryHeaderSize> buffer {};
     file.write(buffer.data(), binaryHeaderSize);
 
-    std::uint32_t numFacets = facets.size();
-    std::memcpy(buffer.data(), &numFacets, numSize);
+    const std::uint32_t numTriangles = this->triangles.size();
+    std::memcpy(buffer.data(), &numTriangles, numSize);
     file.write(buffer.data(), numSize);
 
-    for (const auto& [normals, vertices] : facets) {
+    for (const auto& vertices : this->triangles) {
         // Normal (12 bytes):
-        for (unsigned int normalInd = 0; normalInd < 3; ++normalInd) {
-            std::memcpy(buffer.data() + normalInd * numSize, &normals.at(normalInd), numSize);
-        }
+        const std::array<std::uint32_t, 3> normals {0, 0, 0};
+        std::memcpy(buffer.data(), normals.data(), 3 * numSize);
 
         // Vertices (36 bytes):
         for (unsigned int vertexInd = 0; vertexInd < 3; ++vertexInd) {
