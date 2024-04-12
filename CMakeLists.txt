@@ -21,3 +21,5 @@ include_directories(.)
 # ==================
 # || Executables: ||
 # ==================
+
+add_executable(optilayer optilayer/optilayer.cpp)
