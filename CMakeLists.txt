@@ -17,9 +17,12 @@ include_directories(.)
 # || Libraries: ||
 # ================
 
+add_library(options options/options.cpp)
+
 
 # ==================
 # || Executables: ||
 # ==================
 
 add_executable(optilayer optilayer/optilayer.cpp)
+target_link_libraries(optilayer options)
